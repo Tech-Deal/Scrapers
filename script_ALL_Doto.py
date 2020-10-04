@@ -12,6 +12,10 @@ import json
 
 
 def getProducts(category, driver):
+    """
+        Returns a list<dict> that contains all the products of a category
+    """
+
     ignored_exceptions = [NoSuchElementException,
                           StaleElementReferenceException]
     products = list()
@@ -22,7 +26,6 @@ def getProducts(category, driver):
     while(True):
         products_driver = WebDriverWait(driver, 10, ignored_exceptions=ignored_exceptions)\
             .until(EC.presence_of_all_elements_located((By.XPATH, xpathcode)))
-        #products_driver = driver.find_elements_by_xpath(xpathcode)
         for product_driver in products_driver:
             product = get_product_from_driver(product_driver)
             if product:
@@ -37,13 +40,21 @@ def getProducts(category, driver):
 
 
 def getDriver():
+    """
+        Initializes the Selenium driver
+    """
+
     options = Options()
-    #options.headless = True
+    options.headless = True
     driver = webdriver.Chrome(r'./chromedriver.exe', options=options)
     return driver
 
 
 def get_product_from_driver(product_driver):
+    """
+        Returns a dict from a WebElement 
+    """
+
     product = dict()
     try:
         product['name'] = product_driver.find_element_by_xpath(
@@ -67,6 +78,10 @@ def get_product_from_driver(product_driver):
 
 
 def db():
+    """
+        creates an instance of the db driver
+    """
+
     conn = psycopg2.connect(
         host="techdeal.ccp4vlnfh8p0.us-east-2.rds.amazonaws.com",
         database="techdata",
@@ -76,6 +91,10 @@ def db():
 
 
 def insertProducts(products):
+    """
+        Inserts a list of products into the db
+    """
+
     conn = db()
     cur = conn.cursor()
     cur.executemany("""

@@ -12,6 +12,10 @@ import json
 
 
 def getProducts(url, driver):
+    """
+        Returns a list<dict> that contains all the products of a category
+    """
+
     ignored_exceptions = [NoSuchElementException,
                           StaleElementReferenceException]
     products = list()
@@ -43,6 +47,10 @@ def getProducts(url, driver):
 
 
 def getDriver():
+    """
+        Initializes the Selenium driver
+    """
+
     options = Options()
     options.headless = True
     driver = webdriver.Chrome(r'./chromedriver.exe', options=options)
@@ -50,6 +58,10 @@ def getDriver():
 
 
 def get_product_from_driver(product_driver):
+    """
+        Returns a dict from a WebElement 
+    """
+
     product = dict()
     try:
         product['name'] = product_driver.find_element_by_xpath(
@@ -74,6 +86,10 @@ def get_product_from_driver(product_driver):
 
 
 def db():
+    """
+        creates an instance of the db driver
+    """
+
     conn = psycopg2.connect(
         host="techdeal.ccp4vlnfh8p0.us-east-2.rds.amazonaws.com",
         database="techdata",
@@ -83,6 +99,10 @@ def db():
 
 
 def insertProducts(products):
+    """
+        Inserts a list of products into the db
+    """
+
     conn = db()
     cur = conn.cursor()
     cur.executemany("""
@@ -98,6 +118,10 @@ def insertProducts(products):
 
 
 def getLinks(driver):
+    """
+        Returns a list of links to categories
+    """
+
     driver.get("https://www.tecnowow.mx/")
     links_driver = driver.find_elements_by_xpath(
         '//nav[contains(@class,"navbar-default")]//a')

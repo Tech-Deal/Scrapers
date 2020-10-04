@@ -6,9 +6,13 @@ import re
 import json
 
 
-def getProducts(id, driver):
+def getProducts(categoryId, driver):
+    """
+        Returns a list<dict> that contains all the products of a category
+    """
+
     products = list()
-    url = f"https://www.digitalife.com.mx/productos/idCategoria/{id}"
+    url = f"https://www.digitalife.com.mx/productos/idCategoria/{categoryId}"
     print(url)
     xpathcode = '//div[@class = "productoInfoBloq"]'
     driver.get(url)
@@ -19,16 +23,18 @@ def getProducts(id, driver):
         try:
             driver.find_element_by_xpath('//a[@rel="next"]').click()
         except ElementClickInterceptedException:
-            #print('algo bloquea')
             driver.execute_script(
                 "window.scrollTo(0, document.body.scrollHeight);")
             driver.find_element_by_xpath('//a[@rel="next"]').click()
         except NoSuchElementException:
-            # print("fin")
             return products
 
 
 def getDriver():
+    """
+        Initializes the Selenium driver
+    """
+
     options = Options()
     options.headless = True
     driver = webdriver.Chrome(r'./chromedriver.exe', options=options)
@@ -36,6 +42,10 @@ def getDriver():
 
 
 def get_product_from_driver(product_driver):
+    """
+        Returns a dict from a WebElement 
+    """
+
     product = dict()
     product['name'] = product_driver.find_element_by_xpath(
         './/span[@class="tituloHighlight"]').text
@@ -57,6 +67,10 @@ def get_product_from_driver(product_driver):
 
 
 def db():
+    """
+        creates an instance of the db driver
+    """
+
     conn = psycopg2.connect(
         host="techdeal.ccp4vlnfh8p0.us-east-2.rds.amazonaws.com",
         database="techdata",
@@ -66,6 +80,10 @@ def db():
 
 
 def insertProducts(products):
+    """
+        Inserts a list of products into the db
+    """
+
     conn = db()
     cur = conn.cursor()
     cur.executemany("""
@@ -81,9 +99,9 @@ def insertProducts(products):
 
 
 if __name__ == "__main__":
-    idCategories = [569, 569, 1, 3, 609, 140, 2, 251,
+    idCategories = [569, 1, 3, 609, 140, 2, 251,
                     250, 254, 252, 253, 259, 257, 256]
     driver = getDriver()
-    for id in idCategories:
-        products = getProducts(id, driver)
+    for categoryId in idCategories:
+        products = getProducts(categoryId, driver)
         insertProducts(products)
