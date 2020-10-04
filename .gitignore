@@ -1,0 +1,7 @@
+__pycache__/
+.env/
+venv/
+.vscode/
+chromedriver.exe
+debug.log
+script2.py
