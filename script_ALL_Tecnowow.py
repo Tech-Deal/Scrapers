@@ -11,8 +11,9 @@ import re
 import json
 
 
-def getProducts(url,driver):
-    ignored_exceptions = [NoSuchElementException,StaleElementReferenceException]
+def getProducts(url, driver):
+    ignored_exceptions = [NoSuchElementException,
+                          StaleElementReferenceException]
     products = list()
     product_driver = []
     print(url)
@@ -20,8 +21,8 @@ def getProducts(url,driver):
     driver.get(url)
     while True:
         try:
-            products_driver = WebDriverWait(driver, 5,ignored_exceptions=ignored_exceptions)\
-                         .until(EC.presence_of_all_elements_located((By.XPATH, xpathcode)))
+            products_driver = WebDriverWait(driver, 5, ignored_exceptions=ignored_exceptions)\
+                .until(EC.presence_of_all_elements_located((By.XPATH, xpathcode)))
         except TimeoutException:
             return list()
         for product_driver in products_driver:
@@ -60,7 +61,8 @@ def get_product_from_driver(product_driver):
         price = product_driver.find_element_by_xpath(
             './/span[@class="price"]').text
         print(price)
-        if not price: return False
+        if not price:
+            return False
         product['price'] = float(re.sub(r"[^0-9\.]", "", price))
 
         product['img'] = product_driver.find_element_by_xpath(
@@ -79,29 +81,21 @@ def db():
         password="p4ss.sql")
     return conn
 
+
 def insertProducts(products):
     conn = db()
     cur = conn.cursor()
-    for product in products:
-        cur.execute(
-            'SELECT id FROM public."Products" WHERE url = %s', (product['url'],))
-        p = cur.fetchone()
-        if p is None:
-            cur.execute(
-                'INSERT INTO public."Products" (name, price, url, image_url, store_id) '
-                'VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 3) ',
-                product
-            )
-        else:
-            cur.execute(
-                'UPDATE public."Products" '
-                'SET price = %s WHERE id = %s ',
-                (product['price'],p[0])
-            )
+    cur.executemany("""
+    INSERT INTO public."Products" (name, price, url, image_url, store_id) 
+    VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 1)
+    ON CONFLICT (url)
+    DO UPDATE SET price = EXCLUDED.price
+    """, products)
     print('added')
     conn.commit()
     cur.close()
     conn.close()
+
 
 def getLinks(driver):
     driver.get("https://www.tecnowow.mx/")
@@ -117,7 +111,5 @@ if __name__ == "__main__":
     driver = getDriver()
     links = getLinks(driver)
     for link in links:
-        products = getProducts(link,driver)
+        products = getProducts(link, driver)
         insertProducts(products)
-
-

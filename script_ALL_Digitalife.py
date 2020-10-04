@@ -68,22 +68,12 @@ def db():
 def insertProducts(products):
     conn = db()
     cur = conn.cursor()
-    for product in products:
-        cur.execute(
-            'SELECT id FROM public."Products" WHERE url = %s', (product['url'],))
-        p = cur.fetchone()
-        if p is None:
-            cur.execute(
-                'INSERT INTO public."Products" (name, price, url, image_url, store_id) '
-                'VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 1) ',
-                product
-            )
-        else:
-            cur.execute(
-                'UPDATE public."Products" '
-                'SET price = %s WHERE id = %s ',
-                (product['price'],p[0])
-            )
+    cur.executemany("""
+    INSERT INTO public."Products" (name, price, url, image_url, store_id) 
+    VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 1)
+    ON CONFLICT (url)
+    DO UPDATE SET price = EXCLUDED.price
+    """, products)
     print('added')
     conn.commit()
     cur.close()

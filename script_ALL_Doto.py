@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException,StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -12,15 +12,16 @@ import json
 
 
 def getProducts(category, driver):
-    ignored_exceptions = [NoSuchElementException,StaleElementReferenceException]
+    ignored_exceptions = [NoSuchElementException,
+                          StaleElementReferenceException]
     products = list()
     url = f"https://www.doto.com.mx/{category}"
     print(url)
     xpathcode = '//div[contains(@class,"product-item-wrapper")]'
     driver.get(url)
     while(True):
-        products_driver = WebDriverWait(driver, 10,ignored_exceptions=ignored_exceptions)\
-                         .until(EC.presence_of_all_elements_located((By.XPATH, xpathcode)))
+        products_driver = WebDriverWait(driver, 10, ignored_exceptions=ignored_exceptions)\
+            .until(EC.presence_of_all_elements_located((By.XPATH, xpathcode)))
         #products_driver = driver.find_elements_by_xpath(xpathcode)
         for product_driver in products_driver:
             product = get_product_from_driver(product_driver)
@@ -73,33 +74,26 @@ def db():
         password="p4ss.sql")
     return conn
 
+
 def insertProducts(products):
     conn = db()
     cur = conn.cursor()
-    for product in products:
-        cur.execute(
-            'SELECT id FROM public."Products" WHERE url = %s', (product['url'],))
-        p = cur.fetchone()
-        if p is None:
-            cur.execute(
-                'INSERT INTO public."Products" (name, price, url, image_url, store_id) '
-                'VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 2) ',
-                product
-            )
-        else:
-            cur.execute(
-                'UPDATE public."Products" '
-                'SET price = %s WHERE id = %s ',
-                (product['price'],p[0])
-            )
+    cur.executemany("""
+    INSERT INTO public."Products" (name, price, url, image_url, store_id) 
+    VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 1)
+    ON CONFLICT (url)
+    DO UPDATE SET price = EXCLUDED.price
+    """, products)
     print('added')
     conn.commit()
     cur.close()
     conn.close()
 
+
 if __name__ == "__main__":
 
-    categories = ["audio","celulares","computo","gadgets","gaming","tablets","tv-y-video"]
+    categories = ["audio", "celulares", "computo",
+                  "gadgets", "gaming", "tablets", "tv-y-video"]
     driver = getDriver()
     for category in categories:
         products = getProducts(category, driver)
