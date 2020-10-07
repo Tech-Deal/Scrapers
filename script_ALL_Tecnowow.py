@@ -107,7 +107,7 @@ def insertProducts(products):
     cur = conn.cursor()
     cur.executemany("""
     INSERT INTO public."Products" (name, price, url, image_url, store_id) 
-    VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 1)
+    VALUES (%(name)s, %(price)s, %(url)s, %(img)s, 3)
     ON CONFLICT (url)
     DO UPDATE SET price = EXCLUDED.price
     """, products)
