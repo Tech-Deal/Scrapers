@@ -3,6 +3,7 @@
 ### https://www.digitalife.com.mx/
 ### https://www.doto.com.mx/
 ### https://www.tecnowow.mx/
+### https://pcel.com/
 
 ## Dependencies
 ### Selenium
